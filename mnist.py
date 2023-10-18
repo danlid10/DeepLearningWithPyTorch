@@ -10,7 +10,7 @@ input_size = 28*28
 hidden_size = 100
 num_classes = 10
 learning_rate = 0.001
-num_epochs = 5
+num_epochs = 3
 batch_size = 80
 
 
@@ -32,7 +32,6 @@ total_steps = len(train_loader)
 for epoch in range(num_epochs):
     for i, (features, labels) in enumerate(train_loader):
 
-        features = features.reshape(-1, 28*28)
         output = model(features)
         loss = criterion(output, labels)
 
@@ -49,9 +48,8 @@ with torch.no_grad():
     n_correct = 0
     n_samples = 0
     for features, labels in test_loader:
-        features = features.reshape(-1, 28*28)
-        outputs = model(features)
 
+        outputs = model(features)
         _, predicted = torch.max(outputs.data, 1)
         n_samples += labels.size(0)
         n_correct += (predicted == labels).sum().item()
