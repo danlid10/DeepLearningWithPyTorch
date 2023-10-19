@@ -1,15 +1,17 @@
 import torch
-import torch.nn as nn
+from torch import nn, optim
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 
 """ The MNIST dataset consists of 60,000 training images and 10,000 testing images,
 with each image being a grayscale 28x28 pixel representation of a handwritten digit (0 through 9). """
 
-
+# Load MNIST dataset
 train_data = datasets.MNIST(root="data", train=True, download=True, transform=transforms.ToTensor())
 test_data = datasets.MNIST(root="data", train=False, download=True, transform=transforms.ToTensor())
 
+# Parameters setup
 input_size = train_data.data.size(1) * train_data.data.size(2)
 hidden_size = 112
 num_classes = 10
@@ -17,9 +19,11 @@ learning_rate = 0.001
 num_epochs = 5
 batch_size = 64
 
-train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=batch_size)
+# Data loaders setup
+train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(dataset=test_data, batch_size=batch_size)
 
+# Defining the model
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
         super(NeuralNet, self).__init__()
@@ -35,8 +39,10 @@ class NeuralNet(nn.Module):
         return output
 
 model = NeuralNet(input_size, hidden_size, num_classes)
+
+# Defining loss and optimiser
 criterion = nn.CrossEntropyLoss()
-optimiser = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimiser = optim.Adam(model.parameters(), lr=learning_rate)
 
 # Training the model
 total_steps = len(train_loader)
@@ -62,7 +68,7 @@ with torch.no_grad():
 
         features = features.view(features.size(0), -1)
         outputs = model(features)
-        _, predicted = torch.max(outputs.data, 1)
+        predicted = torch.argmax(outputs.data, dim=1)
         n_samples += labels.size(0)
         n_correct += (predicted == labels).sum().item()
 
