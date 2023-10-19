@@ -6,42 +6,53 @@ import matplotlib.pyplot as plt
 """ The MNIST dataset consists of 60,000 training images and 10,000 testing images,
 with each image being a grayscale 28x28 pixel representation of a handwritten digit (0 through 9). """
 
-input_size = 28*28
-hidden_size = 100
+
+train_data = datasets.MNIST(root="data", train=True, download=True, transform=transforms.ToTensor())
+test_data = datasets.MNIST(root="data", train=False, download=True, transform=transforms.ToTensor())
+
+input_size = train_data.data.size(1) * train_data.data.size(2)
+hidden_size = 112
 num_classes = 10
 learning_rate = 0.001
-num_epochs = 3
-batch_size = 80
+num_epochs = 5
+batch_size = 64
 
+train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=batch_size)
 
-train_dataset = datasets.MNIST(root="data", train=True, download=True, transform=transforms.ToTensor())
+class NeuralNet(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(NeuralNet, self).__init__()
+        self.input_Szie = input_size
+        self.l1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.l2 = nn.Linear(hidden_size, num_classes)
 
-test_dataset = datasets.MNIST(root="data", train=False, transform=transforms.ToTensor())
+    def forward(self, input):
+        output = self.l1(input)
+        output = self.relu(output)
+        output = self.l2(output)
+        return output
 
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size)
-
-
-model = nn.Sequential(nn.Linear(input_size, hidden_size), nn.ReLU(), nn.Linear(hidden_size, num_classes))
+model = NeuralNet(input_size, hidden_size, num_classes)
 criterion = nn.CrossEntropyLoss()
 optimiser = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # Training the model
 total_steps = len(train_loader)
-for epoch in range(num_epochs):
-    for i, (features, labels) in enumerate(train_loader):
+with open("training_log.txt", 'w') as fp:
+    for epoch in range(num_epochs):
+        for i, (features, labels) in enumerate(train_loader):
 
-        output = model(features)
-        loss = criterion(output, labels)
+            features = features.view(features.size(0), -1)
+            output = model(features)
+            loss = criterion(output, labels)
 
-        optimiser.zero_grad()
-        loss.backward()
-        optimiser.step()
+            optimiser.zero_grad()
+            loss.backward()
+            optimiser.step()
 
-        if (i + 1) % 10 == 0:
-            print (f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}')
-
+            fp.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
 
 # Testing the model
 with torch.no_grad():
@@ -49,6 +60,7 @@ with torch.no_grad():
     n_samples = 0
     for features, labels in test_loader:
 
+        features = features.view(features.size(0), -1)
         outputs = model(features)
         _, predicted = torch.max(outputs.data, 1)
         n_samples += labels.size(0)
