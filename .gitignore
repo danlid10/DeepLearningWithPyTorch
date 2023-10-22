@@ -1,4 +1,5 @@
 .vscode
 data
+tempCodeRunnerFile.py
 *_log.txt
 *_model.pth
