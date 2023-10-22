@@ -2,13 +2,16 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-# import matplotlib.pyplot as plt
+import os
+from datetime import datetime
 
 """ The CIFAR-10 dataset is a collection of 60,000 32x32 color images grouped into 10 classes,
 with 50,000-image training set and a 10,000-image test set """
 
 # Parameters setup
 train_log_path = "CIFAR10_train_log.txt"
+model_path = "CIFAR10_model.pth"
+force_train = True
 num_classes = 10
 learning_rate = 0.001
 num_epochs = 5
@@ -38,9 +41,9 @@ class ConvNeuralNet(nn.Module):
         self.fc3 = nn.Linear(80, 10)
 
         """ 
-        size after a convolutional layer can be expressed as follows:
+        Size after a convolutional layer can be expressed as follows:
         [(W − K + 2P)/S] + 1 
-        where:  W - the input volume, K - Kernel size, P - padding, S - stride
+        where:  W - the input size, K - the Kernel size, P - padding, S - stride
         """  
 
     def forward(self, x):
@@ -55,26 +58,35 @@ class ConvNeuralNet(nn.Module):
 
 model = ConvNeuralNet()
 
-# Defining loss and optimiser
-criterion = nn.CrossEntropyLoss()
-optimiser = optim.SGD(model.parameters(), lr=learning_rate)
+if os.path.exists(model_path) and not force_train:
+    # Loading the model
+    model.load_state_dict(torch.load(model_path)) 
+    model.eval()
+    print("Model loaded")
+else:
+    # Defining loss and optimiser
+    criterion = nn.CrossEntropyLoss()
+    optimiser = optim.SGD(model.parameters(), lr=learning_rate)
+    # Training the model
+    start_time = datetime.now()
+    total_steps = len(train_loader)
+    with open(train_log_path, 'w') as f:
+        f.write(f"Training log from {start_time}\n")
+        for epoch in range(num_epochs):
+            for i, (features, labels) in enumerate(train_loader):
 
-# Training the model
-total_steps = len(train_loader)
-with open(train_log_path, 'w') as f:
-    for epoch in range(num_epochs):
-        for i, (features, labels) in enumerate(train_loader):
+                output = model(features)
+                loss = criterion(output, labels)
 
-            output = model(features)
-            loss = criterion(output, labels)
+                optimiser.zero_grad()
+                loss.backward()
+                optimiser.step()
 
-            optimiser.zero_grad()
-            loss.backward()
-            optimiser.step()
+                f.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
 
-            f.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
-
-print("Training completed")
+    end_time = datetime.now()
+    torch.save(model.state_dict(), model_path)
+    print(f"Training completed in {end_time - start_time}")
 
 # Testing the model
 classes = train_data.classes

@@ -2,13 +2,16 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-# import matplotlib.pyplot as plt
+import os
+from datetime import datetime
 
 """ The MNIST dataset consists of 60,000 training images and 10,000 testing images,
 with each image being a grayscale 28x28 pixel representation of a handwritten digit (0 through 9). """
 
 # Parameters setup
 train_log_path = "MNIST_train_log.txt"
+model_path = "MNIST_model.pth"
+force_train = True
 input_size = 28 * 28
 hidden_size = 112
 num_classes = 10
@@ -36,36 +39,45 @@ class NeuralNet(nn.Module):
         self.relu = nn.ReLU()
         self.l2 = nn.Linear(hidden_size, num_classes)
 
-    def forward(self, input):
-        output = self.l1(input)
-        output = self.relu(output)
-        output = self.l2(output)
-        return output
+    def forward(self, x):
+        x = self.l1(x)
+        x = self.relu(x)
+        x = self.l2(x)
+        return x
 
 
 model = NeuralNet(input_size, hidden_size, num_classes)
 
-# Defining loss and optimiser
-criterion = nn.CrossEntropyLoss()
-optimiser = optim.Adam(model.parameters(), lr=learning_rate)
+if os.path.exists(model_path) and not force_train:
+    # Loading the model
+    model.load_state_dict(torch.load(model_path)) 
+    model.eval()
+    print("Model loaded")
+else: 
+    # Defining loss and optimiser
+    criterion = nn.CrossEntropyLoss()
+    optimiser = optim.Adam(model.parameters(), lr=learning_rate)
+    # Training the model
+    start_time = datetime.now()
+    total_steps = len(train_loader)
+    with open(train_log_path, 'w') as f:
+        f.write(f"Training log from {start_time}\n")
+        for epoch in range(num_epochs):
+            for i, (features, labels) in enumerate(train_loader):
 
-# Training the model
-total_steps = len(train_loader)
-with open(train_log_path, 'w') as f:
-    for epoch in range(num_epochs):
-        for i, (features, labels) in enumerate(train_loader):
+                features = features.view(features.size(0), -1)
+                output = model(features)
+                loss = criterion(output, labels)
 
-            features = features.view(features.size(0), -1)
-            output = model(features)
-            loss = criterion(output, labels)
+                optimiser.zero_grad()
+                loss.backward()
+                optimiser.step()
 
-            optimiser.zero_grad()
-            loss.backward()
-            optimiser.step()
+                f.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
 
-            f.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
-            
-print("Training completed")
+    end_time = datetime.now()
+    torch.save(model.state_dict(), model_path)
+    print(f"Training completed in {end_time - start_time}")
 
 # Testing the model
 with torch.no_grad():
