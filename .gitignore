@@ -1,4 +1,5 @@
 .vscode
+__pycache__
 data
 tempCodeRunnerFile.py
 *_log.txt
