@@ -3,6 +3,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from datetime import datetime
+from tqdm import tqdm
 
 """ The CIFAR-10 dataset is a collection of 60,000 32x32 color images grouped into 10 classes,
 with 50,000-image training set and a 10,000-image test set """
@@ -12,8 +13,11 @@ train_log_path = "CIFAR10_train_log.txt"
 model_path = "CIFAR10_model.pth"
 num_classes = 10
 learning_rate = 0.001
-num_epochs = 20
-batch_size = 8
+num_epochs = 50
+batch_size = 4
+
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Defining the model
 class ConvNeuralNet(nn.Module):
@@ -50,7 +54,7 @@ def main():
     # Data loaders setup
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
-    model = ConvNeuralNet()
+    model = ConvNeuralNet().to(device)
 
     # Defining loss and optimiser
     criterion = nn.CrossEntropyLoss()
@@ -61,8 +65,12 @@ def main():
     total_steps = len(train_loader)
     with open(train_log_path, 'w') as f:
         f.write(f"Training log from {start_time}\n")
-        for epoch in range(num_epochs):
+        print("Training started")
+        for epoch in tqdm(range(num_epochs), desc="Epoch"):
             for i, (features, labels) in enumerate(train_loader):
+
+                features = features.to(device)
+                labels = labels.to(device)
 
                 output = model(features)
                 loss = criterion(output, labels)
@@ -73,9 +81,12 @@ def main():
 
                 f.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
 
-    end_time = datetime.now()
+        end_time = datetime.now()
+        training_time = end_time - start_time
+        f.write(f"Training completed in {training_time}")
+
     torch.save(model.state_dict(), model_path)
-    print(f"Training completed in {end_time - start_time}")
+    print(f"Training completed in {training_time}, model saved as '{model_path}'")
 
 if __name__ == "__main__":
     main()

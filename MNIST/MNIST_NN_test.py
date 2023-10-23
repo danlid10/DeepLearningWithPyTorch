@@ -33,7 +33,10 @@ def main():
         n_class_correct = [0] * num_classes
 
         for features, labels in test_loader:
-            features = features.view(features.size(0), -1)
+
+            features = features.view(features.size(0), -1).to(device)
+            labels = labels.to(device)
+            
             outputs = model(features)
             predicted = torch.argmax(outputs.data, dim=1)
             n_samples += labels.size(0)
