@@ -21,7 +21,7 @@ def main():
     model = NeuralNet(input_size, hidden_size, num_classes)
 
     # Loading the model
-    model.load_state_dict(torch.load(model_path)) 
+    model.load_state_dict(torch.load(model_path, map_location=device)) 
     model.eval()
     print("Model loaded")
 
