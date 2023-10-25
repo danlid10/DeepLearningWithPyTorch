@@ -1,45 +1,13 @@
-import torch
-from torch import nn, optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-from datetime import datetime
-from tqdm import tqdm
-
-""" The MNIST dataset consists of 60,000 training images and 10,000 testing images,
-with each image being a grayscale 28x28 pixel representation of a handwritten digit (0 through 9). """
-
-# Parameters
-train_log_path = "MNIST_train_log.txt"
-model_path = "MNIST_model.pth"
-input_size = 28 * 28
-hidden_size = 112
-num_classes = 10
-learning_rate = 0.001
-num_epochs = 3
-batch_size = 64
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# Defining the model
-class NeuralNet(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
-        super(NeuralNet, self).__init__()
-        self.input_Szie = input_size
-        self.l1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
-        self.l2 = nn.Linear(hidden_size, num_classes)
-
-    def forward(self, x):
-        x = self.l1(x)
-        x = self.relu(x)
-        x = self.l2(x)
-        return x
-    
+from MNIST_model import *
+ 
 def main():
 
     # Load MNIST dataset
-    train_data = datasets.MNIST(root="data", train=True, download=True, transform=transforms.ToTensor())
+    train_transforms = transforms.Compose([
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5,), (0.5,)) 
+                                    ])
+    train_data = datasets.MNIST(root="data", train=True, download=True, transform=train_transforms)
 
     # Data loaders setup
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)

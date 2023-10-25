@@ -1,9 +1,4 @@
-import torch
-from torch import nn, optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-import os
-from MNIST_NN_train import *
+from MNIST_model import *
 
 def main():
     
@@ -12,8 +7,11 @@ def main():
         exit()
 
     # Load MNIST dataset
-    test_data = datasets.MNIST(root="data", train=False,
-                            download=True, transform=transforms.ToTensor())
+    test_transforms = transforms.Compose([
+                                transforms.ToTensor(),
+                                transforms.Normalize((0.5,), (0.5,))
+                                ])
+    test_data = datasets.MNIST(root="data", train=False, download=True, transform=test_transforms)
 
     # Data loaders setup
     test_loader = DataLoader(dataset=test_data, batch_size=batch_size)
