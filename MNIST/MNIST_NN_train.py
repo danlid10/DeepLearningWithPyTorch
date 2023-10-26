@@ -12,11 +12,21 @@ def main():
     # Data loaders setup
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
+    writer = SummaryWriter()
+
+    examples = iter(train_loader)
+    features, labels = next(examples)
+    img_grid = torchvision.utils.make_grid(features)
+    writer.add_image('MNIST images', img_grid)
+
     model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+
+    writer.add_graph(model, features.view(-1, 28*28).to(device))
 
     # Defining loss and optimiser
     criterion = nn.CrossEntropyLoss()
     optimiser = optim.Adam(model.parameters(), lr=learning_rate)
+
     # Training the model
     start_time = datetime.now()
     total_steps = len(train_loader)
@@ -24,13 +34,17 @@ def main():
         f.write(f"Training log from {start_time}\n")
         print("Training started")
         for epoch in tqdm(range(num_epochs), desc="Epoch"):
-            for i, (features, labels) in enumerate(train_loader):
-
-                features = features.view(features.size(0), -1).to(device)
+            for i, data in enumerate(tqdm(train_loader, desc="Step", leave=False)):
+                
+                features, labels = data
+                
+                features = features.view(-1, 28*28).to(device)
                 labels = labels.to(device)
                 
                 output = model(features)
                 loss = criterion(output, labels)
+
+                writer.add_scalar("Training loss", loss, epoch * total_steps + i)
 
                 optimiser.zero_grad()
                 loss.backward()
@@ -38,6 +52,7 @@ def main():
 
                 f.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
 
+        writer.close()
         end_time = datetime.now()
         training_time = end_time - start_time
         f.write(f"Training completed in {training_time}")

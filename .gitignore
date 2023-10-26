@@ -1,6 +1,7 @@
 .vscode
 __pycache__
 data
+runs
 tempCodeRunnerFile.py
 *_log.txt
 *_model.pth

@@ -2,9 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import torchvision
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from tqdm import tqdm
 import os
@@ -19,7 +21,7 @@ input_size = 28 * 28
 hidden_size = 112
 num_classes = 10
 learning_rate = 0.001
-num_epochs = 5
+num_epochs = 3
 batch_size = 64
 
 # Device configuration
