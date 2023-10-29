@@ -1,50 +1,65 @@
-from CIFAR10_model import *
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+import torchvision.datasets as datasets
+import torchvision.transforms as transforms
+import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
+from datetime import datetime
+from tqdm import tqdm
+import json
+from CIFAR10_model import ConvNeuralNet
 
-def main():
-        
-    # Load MNIST dataset
-    train_transforms = transforms.Compose([
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    train_data = datasets.CIFAR10(root="data", train=True, download=True, transform=train_transforms)
-  
-    # Data loaders setup
-    train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
-    model = ConvNeuralNet().to(device)
+with open("config.json", "r") as jsonfile:
+    config = json.load(jsonfile)
 
-    # Defining loss and optimiser
-    criterion = nn.CrossEntropyLoss()
-    optimiser = optim.SGD(model.parameters(), lr=learning_rate)
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+# Load MNIST dataset
+train_transforms = transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+train_data = datasets.CIFAR10(root="data", train=True, download=True, transform=train_transforms)
 
-    # Training the model
-    start_time = datetime.now()
-    total_steps = len(train_loader)
-    with open(train_log_path, 'w') as f:
-        f.write(f"Training log from {start_time}\n")
-        print("Training started")
-        for epoch in tqdm(range(num_epochs), desc="Epoch"):
-            for i, (features, labels) in enumerate(train_loader):
+# Data loaders setup
+train_loader = DataLoader(dataset=train_data, batch_size=config["batch_size"], shuffle=True)
 
-                features = features.to(device)
-                labels = labels.to(device)
+model = ConvNeuralNet().to(device)
 
-                output = model(features)
-                loss = criterion(output, labels)
+# Defining loss and optimiser
+criterion = nn.CrossEntropyLoss()
+optimiser = optim.SGD(model.parameters(), lr=config["learning_rate"])
 
-                optimiser.zero_grad()
-                loss.backward()
-                optimiser.step()
+# Training the model
+start_time = datetime.now()
+total_steps = len(train_loader)
+with open(config["train_log_path"], 'w') as f:
+    f.write(f"Training log from {start_time}\n")
+    print("Training started")
+    for epoch in tqdm(range(config["num_epochs"]), desc="Epoch"):
+        for i, data in enumerate(tqdm(train_loader, desc="Step", leave=False)):
 
-                f.write(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
+            features, labels = data
+            features = features.to(device)
+            labels = labels.to(device)
 
-        end_time = datetime.now()
-        training_time = end_time - start_time
-        f.write(f"Training completed in {training_time}")
+            output = model(features)
+            loss = criterion(output, labels)
 
-    torch.save(model.state_dict(), model_path)
-    print(f"Training completed in {training_time}, model saved as '{model_path}'")
+            optimiser.zero_grad()
+            loss.backward()
+            optimiser.step()
 
-if __name__ == "__main__":
-    main()
+            f.write(f'Epoch [{epoch+1}/{config["num_epochs"]}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
+
+    end_time = datetime.now()
+    training_time = end_time - start_time
+    f.write(f"Training completed in {training_time}")
+
+torch.save(model.state_dict(), config['model_path'])
+print(f"Training completed in {training_time}, model saved as '{config['model_path']}'")
+

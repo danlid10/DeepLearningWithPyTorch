@@ -1,32 +1,14 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
-import torch.nn.functional as F
-from datetime import datetime
-from tqdm import tqdm
-import os
 
 """ The CIFAR-10 dataset is a collection of 60,000 32x32 color images grouped into 10 classes,
 with 50,000-image training set and a 10,000-image test set """
-
-# Parameters setup
-train_log_path = "CIFAR10_train_log.txt"
-model_path = "CIFAR10_model.pth"
-num_classes = 10
-learning_rate = 0.001
-num_epochs = 50
-batch_size = 4
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Defining the model
 class ConvNeuralNet(nn.Module):
     def __init__(self):
         super(ConvNeuralNet, self).__init__()
+        self.num_classes = 10
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
