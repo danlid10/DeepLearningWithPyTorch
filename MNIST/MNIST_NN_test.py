@@ -31,6 +31,8 @@ test_data = datasets.MNIST(root="data", train=False, download=True, transform=te
 # Data loaders setup
 test_loader = DataLoader(dataset=test_data, batch_size=config["batch_size"])
 
+writer = SummaryWriter()
+
 model = NeuralNet()
 
 # Loading the model
@@ -39,11 +41,14 @@ model.eval()
 print("Model loaded")
 
 # Testing the model
+classes = test_data.classes
 with torch.no_grad():
     n_correct = 0
     n_samples = 0
     n_class_samples = [0] * model.num_classes
     n_class_correct = [0] * model.num_classes
+    class_probs = []
+    class_label = []
 
     for features, labels in test_loader:
 
@@ -51,6 +56,11 @@ with torch.no_grad():
         labels = labels.to(device)
         
         outputs = model(features)
+
+        class_probs_batch = [F.softmax(output, dim=0) for output in outputs]
+        class_probs.append(class_probs_batch)
+        class_label.append(labels)
+
         predicted = torch.argmax(outputs.data, dim=1)
         n_samples += labels.size(0)
         n_correct += (predicted == labels).sum().item()
@@ -60,10 +70,20 @@ with torch.no_grad():
             if pred == label:
                 n_class_correct[label] += 1
 
+        test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
+        test_label = torch.cat(class_label)
+
     for i in range(model.num_classes):
         class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
-        print(f'Accuracy of class {i}: {class_acc:.3f} %')
+        print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
 
+        # Tensorboard PR curve
+        tensorboard_truth = test_label == i
+        tensorboard_probs = test_probs[:, i]
+        writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
+
+    writer.close()
+    
     acc = 100.0 * n_correct / n_samples
     print(f'Accuracy of the network: {acc:.3f} %')
 

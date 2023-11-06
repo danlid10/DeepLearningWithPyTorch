@@ -10,12 +10,12 @@ class ConvNeuralNet(nn.Module):
         super(ConvNeuralNet, self).__init__()
         self.num_classes = 10
         self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
+        self.pool = nn.MaxPool2d(2, 2)
         self.relu = nn.ReLU()
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc3 = nn.Linear(84, self.num_classes)
 
         """ 
         Size after a convolutional layer can be expressed as follows:

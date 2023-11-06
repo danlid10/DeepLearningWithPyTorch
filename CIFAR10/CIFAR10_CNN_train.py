@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import torchvision
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import torch.nn.functional as F
@@ -34,9 +35,18 @@ model = ConvNeuralNet().to(device)
 criterion = nn.CrossEntropyLoss()
 optimiser = optim.SGD(model.parameters(), lr=config["learning_rate"])
 
+writer = SummaryWriter()
+# Loading example data and model to TensorBoard
+examples = iter(train_loader)
+features, labels = next(examples)
+img_grid = torchvision.utils.make_grid(features)
+writer.add_image('CIFAR10 images', img_grid)
+writer.add_graph(model, features)
+
 # Training the model
 start_time = datetime.now()
 total_steps = len(train_loader)
+running_loss = 0.0
 with open(config["train_log_path"], 'w') as f:
     f.write(f"Training log from {start_time}\n")
     print("Training started")
@@ -49,10 +59,15 @@ with open(config["train_log_path"], 'w') as f:
 
             output = model(features)
             loss = criterion(output, labels)
+            running_loss += loss.item()
 
             optimiser.zero_grad()
             loss.backward()
             optimiser.step()
+
+            if (i + 1) % 100 == 0:
+                writer.add_scalar("Training loss", running_loss / 100, epoch * total_steps + i)
+                running_loss = 0.0
 
             f.write(f'Epoch [{epoch+1}/{config["num_epochs"]}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
 
