@@ -53,7 +53,6 @@ with open(config["train_log_path"], 'w') as f:
         for i, data in enumerate(tqdm(train_loader, desc="Step", leave=False)):
             
             features, labels = data
-            
             features = features.view(features.size(0), -1).to(device)
             labels = labels.to(device)
             
