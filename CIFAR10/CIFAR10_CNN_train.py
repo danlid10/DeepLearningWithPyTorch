@@ -10,6 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from tqdm import tqdm
 import json
+import os
 from CIFAR10_model import ConvNeuralNet
 
 
@@ -49,7 +50,9 @@ writer.add_graph(model, features)
 start_time = datetime.now()
 total_steps = len(train_loader)
 running_loss = 0.0
-with open(config["train_log_path"], 'w') as f:
+os.makedirs('logs', exist_ok=True)
+log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{config["train_log_path"]}')
+with open(log_path, 'w') as f:
     f.write(f"Training log from {start_time}\n")
     print("Training started")
     for epoch in tqdm(range(config["num_epochs"]), desc="Epoch"):

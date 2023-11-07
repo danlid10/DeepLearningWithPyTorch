@@ -10,6 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from tqdm import tqdm
 import json
+import os
 from MNIST_model import NeuralNet
 
 with open("config.json", "r") as jsonfile:
@@ -38,7 +39,7 @@ examples = iter(train_loader)
 features, labels = next(examples)
 img_grid = torchvision.utils.make_grid(features)
 writer.add_image('MNIST images', img_grid)
-writer.add_graph(model, features)
+writer.add_graph(model, features.view(features.size(0), -1))
 
 # Defining loss and optimiser
 criterion = nn.CrossEntropyLoss()
@@ -48,7 +49,10 @@ optimiser = optim.Adam(model.parameters(), lr=config["learning_rate"])
 start_time = datetime.now()
 total_steps = len(train_loader)
 running_loss = 0.0
-with open(config["train_log_path"], 'w') as f:
+os.makedirs('logs', exist_ok=True)
+log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{config["train_log_path"]}')
+
+with open(log_path, 'w') as f:
     f.write(f"Training log from {start_time}\n")
     print("Training started")
     for epoch in tqdm(range(config["num_epochs"]), desc="Epoch"):
