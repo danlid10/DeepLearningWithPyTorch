@@ -28,11 +28,11 @@ test_data = datasets.CIFAR10(root="data", train=False, download=True, transform=
 # Data loader setup
 test_loader = DataLoader(dataset=test_data, batch_size=config["batch_size"])
 
+# TensorBoard writer
 writer = SummaryWriter()
 
-model = ConvNeuralNet()
-
 # Loading the model
+model = ConvNeuralNet()
 model.load_state_dict(torch.load(config["model_path"], map_location=device)) 
 model.eval()
 print("Model loaded")
@@ -73,7 +73,6 @@ with torch.no_grad():
     for i in range(model.num_classes):
         class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
         print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
-
         # Tensorboard PR curve
         tensorboard_truth = test_label == i
         tensorboard_probs = test_probs[:, i]

@@ -25,12 +25,14 @@ train_transforms = transforms.Compose([
                                 ])
 train_data = datasets.MNIST(root="data", train=True, download=True, transform=train_transforms)
 
-# Data loaders setup
+# Data loader setup
 train_loader = DataLoader(dataset=train_data, batch_size=config["batch_size"], shuffle=True)
 
 model = NeuralNet().to(device)
 
+# TensorBoard writer
 writer = SummaryWriter()
+
 # Loading example data and model to TensorBoard
 examples = iter(train_loader)
 features, labels = next(examples)

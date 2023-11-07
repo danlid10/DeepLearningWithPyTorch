@@ -26,7 +26,7 @@ train_transforms = transforms.Compose([
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 train_data = datasets.CIFAR10(root="data", train=True, download=True, transform=train_transforms)
 
-# Data loaders setup
+# Data loader setup
 train_loader = DataLoader(dataset=train_data, batch_size=config["batch_size"], shuffle=True)
 
 model = ConvNeuralNet().to(device)
@@ -35,7 +35,9 @@ model = ConvNeuralNet().to(device)
 criterion = nn.CrossEntropyLoss()
 optimiser = optim.SGD(model.parameters(), lr=config["learning_rate"])
 
+# TensorBoard writer
 writer = SummaryWriter()
+
 # Loading example data and model to TensorBoard
 examples = iter(train_loader)
 features, labels = next(examples)
@@ -70,7 +72,8 @@ with open(config["train_log_path"], 'w') as f:
                 running_loss = 0.0
 
             f.write(f'Epoch [{epoch+1}/{config["num_epochs"]}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
-
+        
+    writer.close()
     end_time = datetime.now()
     training_time = end_time - start_time
     f.write(f"Training completed in {training_time}")
