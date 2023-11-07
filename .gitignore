@@ -2,6 +2,6 @@
 __pycache__
 data
 runs
+logs
 tempCodeRunnerFile.py
-*_log.txt
 *_model.pth
