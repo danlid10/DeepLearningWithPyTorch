@@ -8,7 +8,6 @@ import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 import os
-import json
 import MNIST_model
 import MNIST_config
 
@@ -19,7 +18,6 @@ if not os.path.exists(MNIST_config.MODEL_PATH):
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print("Device type:", device)
 
 # Load MNIST dataset
 test_transforms = transforms.Compose([
@@ -38,7 +36,7 @@ if MNIST_config.USE_TENSORBOARD:
 model = MNIST_model.NeuralNet()
 model.load_state_dict(torch.load(MNIST_config.MODEL_PATH, map_location=device)) 
 model.eval()
-print("Model loaded")
+print(f"Model loaded to {device}")
 
 # Testing the model
 classes = test_data.classes
