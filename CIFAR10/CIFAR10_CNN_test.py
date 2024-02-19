@@ -6,13 +6,10 @@ import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 import os
-import json
-from CIFAR10_model import ConvNeuralNet
-
-with open("config.json", "r") as jsonfile:
-    config = json.load(jsonfile)
-    
-if not os.path.exists(config["model_path"]):
+import CIFAR10_model 
+import CIFAR10_config
+  
+if not os.path.exists(CIFAR10_config.MODEL_PATH):
     print("[ERROR] Model not found, exiting...")
     exit()
 
@@ -26,16 +23,16 @@ test_transforms = transforms.Compose([
 test_data = datasets.CIFAR10(root="data", train=False, download=True, transform=test_transforms)
 
 # Data loader setup
-test_loader = DataLoader(dataset=test_data, batch_size=config["batch_size"])
+test_loader = DataLoader(dataset=test_data, batch_size=CIFAR10_config.BATCH_SIZE)
 
 # TensorBoard writer
 writer = SummaryWriter()
 
 # Loading the model
-model = ConvNeuralNet()
-model.load_state_dict(torch.load(config["model_path"], map_location=device)) 
+model = CIFAR10_model.ConvNeuralNet()
+model.load_state_dict(torch.load(CIFAR10_config.MODEL_PATH, map_location=device)) 
 model.eval()
-print("Model loaded")
+print(f"Model loaded to {device}")
 
 # Testing the model
 classes = test_data.classes
@@ -73,12 +70,14 @@ with torch.no_grad():
     for i in range(model.num_classes):
         class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
         print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
-        # Tensorboard PR curve
-        tensorboard_truth = test_label == i
-        tensorboard_probs = test_probs[:, i]
-        writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
-
-    writer.close()
+        if CIFAR10_config.USE_TENSORBOARD:
+            # Tensorboard PR curve
+            tensorboard_truth = test_label == i
+            tensorboard_probs = test_probs[:, i]
+            writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
+   
+    if CIFAR10_config.USE_TENSORBOARD:
+        writer.close()
 
     acc = 100.0 * n_correct / n_samples
     print(f'Accuracy of the network: {acc:.3f} %')
