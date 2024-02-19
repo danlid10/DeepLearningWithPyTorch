@@ -9,14 +9,12 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from tqdm import tqdm
-import json
 import os
 import MNIST_model
 import MNIST_config
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print("Device type:", device)
 
 # Load MNIST dataset
 train_transforms = transforms.Compose([
@@ -51,7 +49,7 @@ os.makedirs('logs', exist_ok=True)
 log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{MNIST_config.TRAIN_LOG_PATH}')
 
 with open(log_path, 'w') as f:
-    f.write(f"Training log from {start_time}\n")
+    f.write(f"Training log from {start_time}, Device type: {device}\n")
     print("Training started")
     for epoch in tqdm(range(MNIST_config.NUM_EPOCHS), desc="Epoch"):
         for i, data in enumerate(tqdm(train_loader, desc="Step", leave=False)):
