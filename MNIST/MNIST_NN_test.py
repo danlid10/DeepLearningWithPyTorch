@@ -9,12 +9,11 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 import os
 import json
-from MNIST_model import NeuralNet
+import MNIST_model
+import MNIST_config
 
-with open("config.json", "r") as jsonfile:
-    config = json.load(jsonfile)
 
-if not os.path.exists(config["model_path"]):
+if not os.path.exists(MNIST_config.MODEL_PATH):
     print("[ERROR] Model not found, exiting...")
     exit()
 
@@ -30,14 +29,14 @@ test_transforms = transforms.Compose([
 test_data = datasets.MNIST(root="data", train=False, download=True, transform=test_transforms)
 
 # Data loader setup
-test_loader = DataLoader(dataset=test_data, batch_size=config["batch_size"])
+test_loader = DataLoader(dataset=test_data, batch_size=MNIST_config.BATCH_SIZE)
 
-# TensorBoard writer
-writer = SummaryWriter()
+if MNIST_config.USE_TENSORBOARD:
+    writer = SummaryWriter()
 
 # Loading the model
-model = NeuralNet()
-model.load_state_dict(torch.load(config["model_path"], map_location=device)) 
+model = MNIST_model.NeuralNet()
+model.load_state_dict(torch.load(MNIST_config.MODEL_PATH, map_location=device)) 
 model.eval()
 print("Model loaded")
 
@@ -77,12 +76,14 @@ with torch.no_grad():
     for i in range(model.num_classes):
         class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
         print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
-        # TensorBoard PR curve
-        tensorboard_truth = test_label == i
-        tensorboard_probs = test_probs[:, i]
-        writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
+        if MNIST_config.USE_TENSORBOARD:
+            # TensorBoard PR curve
+            tensorboard_truth = test_label == i
+            tensorboard_probs = test_probs[:, i]
+            writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
 
-    writer.close()
+    if MNIST_config.USE_TENSORBOARD:
+        writer.close()
     
     acc = 100.0 * n_correct / n_samples
     print(f'Accuracy of the network: {acc:.3f} %')
