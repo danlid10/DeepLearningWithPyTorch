@@ -20,6 +20,7 @@ if not os.path.exists(config["model_path"]):
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Device type:", device)
 
 # Load MNIST dataset
 test_transforms = transforms.Compose([

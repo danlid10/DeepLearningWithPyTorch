@@ -18,6 +18,7 @@ with open("config.json", "r") as jsonfile:
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Device type:", device)
 
 # Load MNIST dataset
 train_transforms = transforms.Compose([
