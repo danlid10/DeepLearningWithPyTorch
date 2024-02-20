@@ -1,8 +1,6 @@
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
+from torchvision import datasets, transforms
 import torch.nn.functional as F
 import os
 from datetime import datetime

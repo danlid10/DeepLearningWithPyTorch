@@ -31,7 +31,7 @@ class ConvNeuralNet(nn.Module):
 
         """ 
         Size after a convolutional layer can be expressed as follows:
-        [(W − K + 2P)/S] + 1 
+        [(W - K + 2P)/S] + 1 
         where:  W - the input size, K - the Kernel size, P - padding, S - stride
         """  
 

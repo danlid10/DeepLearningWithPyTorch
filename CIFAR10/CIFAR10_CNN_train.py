@@ -1,11 +1,8 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim
 from torch.utils.data import DataLoader
 import torchvision
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
-import torch.nn.functional as F
+from torchvision import datasets, transforms
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from tqdm import tqdm
