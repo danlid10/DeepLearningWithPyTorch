@@ -6,7 +6,10 @@ import torchvision
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import torch.nn.functional as F
+import os
+from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
+from torchinfo import summary
 import MNIST_config
 
 # Load MNIST dataset
@@ -65,20 +68,32 @@ with torch.no_grad():
         if MNIST_config.USE_TENSORBOARD:
             test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
             test_label = torch.cat(class_label)
+        
+    start_time = datetime.now()
+    os.makedirs('logs', exist_ok=True)
+    log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{MNIST_config.TEST_LOG_PATH}')
+    modelsum = summary(model, (1, 28 * 28))
 
-    for i in range(model.num_classes):
-        class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
-        print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
+    with open(log_path, 'w', encoding='utf-8') as f:
+        f.write(f"Testing log from {start_time}, Device: {MNIST_config.DEVICE}\n")
+        f.write(f"Model summary:\n {str(modelsum)}\n")
+        for i in range(model.num_classes):
+            class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
+            print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
+            f.write(f'Accuracy of class {classes[i]}: {class_acc:.3f} %\n')
+
+            if MNIST_config.USE_TENSORBOARD:
+                # TensorBoard PR curve
+                tensorboard_truth = test_label == i
+                tensorboard_probs = test_probs[:, i]
+                writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
+
         if MNIST_config.USE_TENSORBOARD:
-            # TensorBoard PR curve
-            tensorboard_truth = test_label == i
-            tensorboard_probs = test_probs[:, i]
-            writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
+            writer.close()
+        
+        acc = 100.0 * n_correct / n_samples
+        print(f'Accuracy of the network: {acc:.3f} %')
+        f.write(f'Accuracy of the network: {acc:.3f} %\n')
 
-    if MNIST_config.USE_TENSORBOARD:
-        writer.close()
-    
-    acc = 100.0 * n_correct / n_samples
-    print(f'Accuracy of the network: {acc:.3f} %')
 
 

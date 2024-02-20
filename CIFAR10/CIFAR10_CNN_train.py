@@ -26,7 +26,7 @@ model = CIFAR10_config.ConvNeuralNet().to(CIFAR10_config.DEVICE)
 
 # Defining loss and optimiser
 criterion = nn.CrossEntropyLoss()
-optimiser = optim.SGD(model.parameters(), lr=CIFAR10_config.LEARNING_RATE)
+optimiser = optim.Adam(model.parameters(), lr=CIFAR10_config.LEARNING_RATE)
 
 if CIFAR10_config.USE_TENSORBOARD:
     writer = SummaryWriter()
@@ -65,7 +65,7 @@ with open(log_path, 'w') as f:
                 writer.add_scalar("Training loss", running_loss / 100, epoch * total_steps + i)
                 running_loss = 0.0
 
-            f.write(f'Epoch [{epoch+1}/{CIFAR10_config.NUM_EPOCHS}, Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
+            f.write(f'Epoch [{epoch+1}/{CIFAR10_config.NUM_EPOCHS}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
         
     if CIFAR10_config.USE_TENSORBOARD:
         writer.close()
@@ -76,4 +76,3 @@ with open(log_path, 'w') as f:
 
 torch.save(model.state_dict(), CIFAR10_config.MODEL_PATH)
 print(f"Training completed in {training_time}, model saved as '{CIFAR10_config.MODEL_PATH}'")
-
