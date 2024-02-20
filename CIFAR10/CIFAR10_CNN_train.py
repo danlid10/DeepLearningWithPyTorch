@@ -10,13 +10,9 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from tqdm import tqdm
 import os
-import CIFAR10_model 
 import CIFAR10_config
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-# Load MNIST dataset
+  
+# Load CIFAR10 dataset
 train_transforms = transforms.Compose([
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
@@ -26,7 +22,7 @@ train_data = datasets.CIFAR10(root="data", train=True, download=True, transform=
 # Data loader setup
 train_loader = DataLoader(dataset=train_data, batch_size=CIFAR10_config.BATCH_SIZE, shuffle=True)
 
-model = CIFAR10_model.ConvNeuralNet().to(device)
+model = CIFAR10_config.ConvNeuralNet().to(CIFAR10_config.DEVICE)
 
 # Defining loss and optimiser
 criterion = nn.CrossEntropyLoss()
@@ -48,14 +44,14 @@ running_loss = 0.0
 os.makedirs('logs', exist_ok=True)
 log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{CIFAR10_config.TRAIN_LOG_PATH}')
 with open(log_path, 'w') as f:
-    f.write(f"Training log from {start_time}, Device: {device}\n")
+    f.write(f"Training log from {start_time}, Device: {CIFAR10_config.DEVICE}\n")
     print("Training started")
     for epoch in tqdm(range(CIFAR10_config.NUM_EPOCHS), desc="Epoch"):
         for i, data in enumerate(tqdm(train_loader, desc="Step", leave=False)):
 
             features, labels = data
-            features = features.to(device)
-            labels = labels.to(device)
+            features = features.to(CIFAR10_config.DEVICE)
+            labels = labels.to(CIFAR10_config.DEVICE)
 
             output = model(features)
             loss = criterion(output, labels)

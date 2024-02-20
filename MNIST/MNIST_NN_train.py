@@ -10,11 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from tqdm import tqdm
 import os
-import MNIST_model
 import MNIST_config
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load MNIST dataset
 train_transforms = transforms.Compose([
@@ -26,7 +22,7 @@ train_data = datasets.MNIST(root="data", train=True, download=True, transform=tr
 # Data loader setup
 train_loader = DataLoader(dataset=train_data, batch_size=MNIST_config.BATCH_SIZE, shuffle=True)
 
-model = MNIST_model.NeuralNet().to(device)
+model = MNIST_config.NeuralNet().to(MNIST_config.DEVICE)
 
 if MNIST_config.USE_TENSORBOARD:
     writer = SummaryWriter()
@@ -49,14 +45,14 @@ os.makedirs('logs', exist_ok=True)
 log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{MNIST_config.TRAIN_LOG_PATH}')
 
 with open(log_path, 'w') as f:
-    f.write(f"Training log from {start_time}, Device: {device}\n")
+    f.write(f"Training log from {start_time}, Device: {MNIST_config.DEVICE}\n")
     print("Training started")
     for epoch in tqdm(range(MNIST_config.NUM_EPOCHS), desc="Epoch"):
         for i, data in enumerate(tqdm(train_loader, desc="Step", leave=False)):
             
             features, labels = data
-            features = features.view(features.size(0), -1).to(device)
-            labels = labels.to(device)
+            features = features.view(features.size(0), -1).to(MNIST_config.DEVICE)
+            labels = labels.to(MNIST_config.DEVICE)
             
             output = model(features)
             loss = criterion(output, labels)

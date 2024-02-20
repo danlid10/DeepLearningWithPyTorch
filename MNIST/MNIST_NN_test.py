@@ -8,16 +8,12 @@ import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 import os
-import MNIST_model
 import MNIST_config
 
 
 if not os.path.exists(MNIST_config.MODEL_PATH):
     print("[ERROR] Model not found, exiting...")
     exit()
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load MNIST dataset
 test_transforms = transforms.Compose([
@@ -33,10 +29,10 @@ if MNIST_config.USE_TENSORBOARD:
     writer = SummaryWriter()
 
 # Loading the model
-model = MNIST_model.NeuralNet()
-model.load_state_dict(torch.load(MNIST_config.MODEL_PATH, map_location=device)) 
+model = MNIST_config.NeuralNet()
+model.load_state_dict(torch.load(MNIST_config.MODEL_PATH, map_location=MNIST_config.DEVICE)) 
 model.eval()
-print(f"Model loaded to {device}")
+print(f"Model loaded to {MNIST_config.DEVICE}")
 
 # Testing the model
 classes = test_data.classes
@@ -50,8 +46,8 @@ with torch.no_grad():
 
     for features, labels in test_loader:
 
-        features = features.view(features.size(0), -1).to(device)
-        labels = labels.to(device)
+        features = features.view(features.size(0), -1).to(MNIST_config.DEVICE)
+        labels = labels.to(MNIST_config.DEVICE)
         
         outputs = model(features)
 
@@ -68,8 +64,9 @@ with torch.no_grad():
             if pred == label:
                 n_class_correct[label] += 1
 
-        test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
-        test_label = torch.cat(class_label)
+        if MNIST_config.USE_TENSORBOARD:
+            test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
+            test_label = torch.cat(class_label)
 
     for i in range(model.num_classes):
         class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
