@@ -45,7 +45,7 @@ os.makedirs('logs', exist_ok=True)
 log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{CIFAR10_config.TRAIN_LOG_PATH}')
 with open(log_path, 'w') as f:
     f.write(f"Training log from {start_time}, Device: {CIFAR10_config.DEVICE}\n")
-    print("Training started")
+    print(f"Training started, Device: {CIFAR10_config.DEVICE}")
     for epoch in tqdm(range(CIFAR10_config.NUM_EPOCHS), desc="Epoch"):
         for i, data in enumerate(tqdm(train_loader, desc="Step", leave=False)):
 

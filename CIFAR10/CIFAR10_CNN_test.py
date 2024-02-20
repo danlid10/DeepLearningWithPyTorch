@@ -5,13 +5,8 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
-import os
 import CIFAR10_config
   
-if not os.path.exists(CIFAR10_config.MODEL_PATH):
-    print("[ERROR] Model not found, exiting...")
-    exit()
-
 # Load MNIST test dataset
 test_transforms = transforms.Compose([
                 transforms.ToTensor(),
@@ -26,7 +21,11 @@ writer = SummaryWriter()
 
 # Loading the model
 model = CIFAR10_config.ConvNeuralNet()
-model.load_state_dict(torch.load(CIFAR10_config.MODEL_PATH, map_location=device)) 
+try:
+    model.load_state_dict(torch.load(CIFAR10_config.MODEL_PATH, map_location=CIFAR10_config.DEVICE)) 
+except FileNotFoundError:
+    print("[ERROR] Model not found, exiting...")
+    exit()
 model.eval()
 print(f"Model loaded to {CIFAR10_config.DEVICE}")
 
@@ -59,7 +58,7 @@ with torch.no_grad():
             n_class_samples[label] += 1
             if pred == label:
                 n_class_correct[label] += 1
-                
+
     if CIFAR10_config.USE_TENSORBOARD:
         test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
         test_label = torch.cat(class_label)

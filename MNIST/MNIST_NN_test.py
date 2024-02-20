@@ -7,13 +7,7 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
-import os
 import MNIST_config
-
-
-if not os.path.exists(MNIST_config.MODEL_PATH):
-    print("[ERROR] Model not found, exiting...")
-    exit()
 
 # Load MNIST dataset
 test_transforms = transforms.Compose([
@@ -30,7 +24,11 @@ if MNIST_config.USE_TENSORBOARD:
 
 # Loading the model
 model = MNIST_config.NeuralNet()
-model.load_state_dict(torch.load(MNIST_config.MODEL_PATH, map_location=MNIST_config.DEVICE)) 
+try:
+    model.load_state_dict(torch.load(MNIST_config.MODEL_PATH, map_location=MNIST_config.DEVICE)) 
+except FileNotFoundError:
+    print("[ERROR] Model not found, exiting...")
+    exit()
 model.eval()
 print(f"Model loaded to {MNIST_config.DEVICE}")
 
