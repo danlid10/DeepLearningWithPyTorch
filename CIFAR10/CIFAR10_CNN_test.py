@@ -32,11 +32,12 @@ print(f"Model loaded to {CIFAR10_config.DEVICE}")
 
 # Testing the model
 classes = test_data.classes
+num_classes = len(classes)
 with torch.no_grad():
     n_correct = 0
     n_samples = 0
-    n_class_samples = [0] * model.num_classes
-    n_class_correct = [0] * model.num_classes
+    n_class_samples = [0] * num_classes
+    n_class_correct = [0] * num_classes
     class_probs = []
     class_label = []
 
@@ -72,7 +73,7 @@ with torch.no_grad():
     with open(log_path, 'w', encoding='utf-8') as f:
         f.write(f"Testing log from {start_time}, Device: {CIFAR10_config.DEVICE}\n")
         f.write(f"Model summary:\n {str(modelsum)}\n")
-        for i in range(model.num_classes):
+        for i in range(num_classes):
             class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
             print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
             f.write(f'Accuracy of class {classes[i]}: {class_acc:.3f} %\n')

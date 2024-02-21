@@ -5,7 +5,6 @@ import torch.nn as nn
 with each image being a grayscale 28x28 pixel representation of a handwritten digit (0 through 9). """
 
 # Parameters setup
-HIDDEN_SIZE = 112
 LEARNING_RATE = 0.001
 BATCH_SIZE = 64
 NUM_EPOCHS = 3
@@ -21,12 +20,9 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 class NeuralNet(nn.Module):
     def __init__(self):
         super(NeuralNet, self).__init__()
-        self.input_size = 28 * 28
-        self.num_classes = 10
-        self.hidden_size = HIDDEN_SIZE
-        self.l1 = nn.Linear(self.input_size, self.hidden_size)
+        self.l1 = nn.Linear(28 * 28, 112)
         self.relu = nn.ReLU()
-        self.l2 = nn.Linear(self.hidden_size, self.num_classes)
+        self.l2 = nn.Linear(112, 10)
 
     def forward(self, x):
         x = self.l1(x)
