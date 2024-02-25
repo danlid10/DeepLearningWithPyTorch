@@ -25,14 +25,13 @@ model = CIFAR10_config.ConvNeuralNet().to(CIFAR10_config.DEVICE)
 criterion = nn.CrossEntropyLoss()
 optimiser = optim.Adam(model.parameters(), lr=CIFAR10_config.LEARNING_RATE)
 
-if CIFAR10_config.USE_TENSORBOARD:
-    writer = SummaryWriter()
-    # Loading example data and model to TensorBoard
-    examples = iter(train_loader)
-    features, labels = next(examples)
-    img_grid = torchvision.utils.make_grid(features)
-    writer.add_image('CIFAR10 images', img_grid)
-    writer.add_graph(model, features)
+writer = SummaryWriter()
+# Loading example data and model to TensorBoard
+examples = iter(train_loader)
+features, labels = next(examples)
+img_grid = torchvision.utils.make_grid(features)
+writer.add_image('CIFAR10 images', img_grid)
+writer.add_graph(model, features)
 
 # Training the model
 start_time = datetime.now()
@@ -43,7 +42,12 @@ log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{CIFAR1
 
 with open(log_path, 'w') as f:
 
-    f.write(f"Training log from {start_time}, Device: {CIFAR10_config.DEVICE}\n")
+    f.write(f"Training log from {start_time}")
+    f.write(f"Device: {CIFAR10_config.DEVICE}\n")
+    f.write(f"Number of Epochs: {CIFAR10_config.NUM_EPOCHS}\n")
+    f.write(f"Batch size: {CIFAR10_config.BATCH_SIZE}\n")
+    f.write(f"criterion: {criterion}\n")
+    f.write(f"Optimiser: {optimiser}\n")
     print(f"Training started, Device: {CIFAR10_config.DEVICE}")
     
     for epoch in tqdm(range(CIFAR10_config.NUM_EPOCHS), desc="Epoch"):
@@ -61,18 +65,18 @@ with open(log_path, 'w') as f:
             loss.backward()
             optimiser.step()
 
-            if CIFAR10_config.USE_TENSORBOARD and (i + 1) % 100 == 0:
+            if (i + 1) % 100 == 0:
+                f.write(f'Epoch [{epoch+1}/{CIFAR10_config.NUM_EPOCHS}], Step [{i+1}/{total_steps}], Loss: {running_loss / 100:.4f}\n')
                 writer.add_scalar("Training loss", running_loss / 100, epoch * total_steps + i)
                 running_loss = 0.0
 
-            f.write(f'Epoch [{epoch+1}/{CIFAR10_config.NUM_EPOCHS}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
         
-    if CIFAR10_config.USE_TENSORBOARD:
-        writer.close()
 
     end_time = datetime.now()
     training_time = end_time - start_time
     f.write(f"Training completed in {training_time}")
+
+writer.close()
 
 torch.save(model.state_dict(), CIFAR10_config.MODEL_PATH)
 print(f"Training completed in {training_time}, model saved as '{CIFAR10_config.MODEL_PATH}'")

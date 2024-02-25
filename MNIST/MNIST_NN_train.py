@@ -21,14 +21,13 @@ train_loader = DataLoader(dataset=train_data, batch_size=MNIST_config.BATCH_SIZE
 
 model = MNIST_config.NeuralNet().to(MNIST_config.DEVICE)
 
-if MNIST_config.USE_TENSORBOARD:
-    writer = SummaryWriter()
-    # Loading example data and model to TensorBoard
-    examples = iter(train_loader)
-    features, labels = next(examples)
-    img_grid = torchvision.utils.make_grid(features)
-    writer.add_image('MNIST images', img_grid)
-    writer.add_graph(model, features.view(features.size(0), -1))
+writer = SummaryWriter()
+# Loading example data and model to TensorBoard
+examples = iter(train_loader)
+features, labels = next(examples)
+img_grid = torchvision.utils.make_grid(features)
+writer.add_image('MNIST images', img_grid)
+writer.add_graph(model, features.view(features.size(0), -1))
 
 # Defining loss and optimiser
 criterion = nn.CrossEntropyLoss()
@@ -43,7 +42,12 @@ log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{MNIST_
 
 with open(log_path, 'w') as f:
     
-    f.write(f"Training log from {start_time}, Device: {MNIST_config.DEVICE}\n")
+    f.write(f"Training log from {start_time}")
+    f.write(f"Device: {MNIST_config.DEVICE}\n")
+    f.write(f"Number of Epochs: {MNIST_config.NUM_EPOCHS}\n")
+    f.write(f"Batch size: {MNIST_config.BATCH_SIZE}\n")
+    f.write(f"criterion: {criterion}\n")
+    f.write(f"Optimiser: {optimiser}\n")
     print(f"Training started, Device: {MNIST_config.DEVICE}")
 
     for epoch in tqdm(range(MNIST_config.NUM_EPOCHS), desc="Epoch"):
@@ -61,19 +65,19 @@ with open(log_path, 'w') as f:
             loss.backward()
             optimiser.step()
 
-            if MNIST_config.USE_TENSORBOARD and (i + 1) % 100 == 0:
+            if  (i + 1) % 100 == 0:
+                f.write(f'Epoch [{epoch+1}/{MNIST_config.NUM_EPOCHS}], Step [{i+1}/{total_steps}], Loss: {running_loss / 100:.4f}\n')
                 writer.add_scalar("Training loss", running_loss / 100, epoch * total_steps + i)
                 running_loss = 0.0
 
-            f.write(f'Epoch [{epoch+1}/{MNIST_config.NUM_EPOCHS}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}\n')
-
-    if MNIST_config.USE_TENSORBOARD:
-        writer.close()
+    writer.close()
 
     end_time = datetime.now()
     training_time = end_time - start_time
     f.write(f"Training completed in {training_time}")
 
 torch.save(model.state_dict(), MNIST_config.MODEL_PATH)
-print(f"Training completed in {training_time}, model saved as '{MNIST_config.MODEL_PATH}'")
+print(f"Training completed in {training_time}")
+print(f"Model saved as '{MNIST_config.MODEL_PATH}")
+print(f"Training log saved as {log_path}")
 

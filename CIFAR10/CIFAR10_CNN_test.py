@@ -17,20 +17,22 @@ test_data = datasets.CIFAR10(root="data", train=False, download=True, transform=
 # Data loader setup
 test_loader = DataLoader(dataset=test_data, batch_size=CIFAR10_config.BATCH_SIZE)
 
-if CIFAR10_config.USE_TENSORBOARD:
-    writer = SummaryWriter()
+writer = SummaryWriter()
 
 # Loading the model
 model = CIFAR10_config.ConvNeuralNet()
-try:
-    model.load_state_dict(torch.load(CIFAR10_config.MODEL_PATH, map_location=CIFAR10_config.DEVICE)) 
-except FileNotFoundError:
-    print("[ERROR] Model not found, exiting...")
-    exit()
+model.load_state_dict(torch.load(CIFAR10_config.MODEL_PATH, map_location=CIFAR10_config.DEVICE)) 
 model.eval()
 print(f"Model loaded to {CIFAR10_config.DEVICE}")
 
+start_time = datetime.now()
+os.makedirs('logs', exist_ok=True)
+log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{CIFAR10_config.TEST_LOG_PATH}')
+print("Model summary:")
+modelsum = summary(model, (3, 32, 32))
+
 # Testing the model
+print("Testing started.")
 classes = test_data.classes
 num_classes = len(classes)
 with torch.no_grad():
@@ -61,33 +63,25 @@ with torch.no_grad():
             if pred == label:
                 n_class_correct[label] += 1
 
-    if CIFAR10_config.USE_TENSORBOARD:
-        test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
-        test_label = torch.cat(class_label)
-
-    start_time = datetime.now()
-    os.makedirs('logs', exist_ok=True)
-    log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{CIFAR10_config.TEST_LOG_PATH}')
-    modelsum = summary(model, (3, 32, 32))
+    test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
+    test_label = torch.cat(class_label)
 
     with open(log_path, 'w', encoding='utf-8') as f:
         f.write(f"Testing log from {start_time}, Device: {CIFAR10_config.DEVICE}\n")
         f.write(f"Model summary:\n {str(modelsum)}\n")
         for i in range(num_classes):
             class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
-            print(f'Accuracy of class {classes[i]}: {class_acc:.3f} %')
-            f.write(f'Accuracy of class {classes[i]}: {class_acc:.3f} %\n')
+            print(f'Accuracy of class "{classes[i]}": {class_acc:.3f} %')
+            f.write(f'Accuracy of class "{classes[i]}": {class_acc:.3f} %\n')
 
-            if CIFAR10_config.USE_TENSORBOARD:
-                # Tensorboard PR curve
-                tensorboard_truth = test_label == i
-                tensorboard_probs = test_probs[:, i]
-                writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
+            # Tensorboard PR curve
+            tensorboard_truth = test_label == i
+            tensorboard_probs = test_probs[:, i]
+            writer.add_pr_curve(classes[i], tensorboard_truth, tensorboard_probs, global_step=0)
     
-        if CIFAR10_config.USE_TENSORBOARD:
-            writer.close()
 
         acc = 100.0 * n_correct / n_samples
         print(f'Accuracy of the network: {acc:.3f} %')
         f.write(f'Accuracy of the network: {acc:.3f} %\n')
 
+writer.close()

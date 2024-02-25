@@ -11,7 +11,6 @@ NUM_EPOCHS = 3
 TRAIN_LOG_PATH = "MNIST_train_log.txt"
 TEST_LOG_PATH = "MNIST_test_log.txt"
 MODEL_PATH = "MNIST_model.pth"
-USE_TENSORBOARD = False
 
 # Device configuration
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

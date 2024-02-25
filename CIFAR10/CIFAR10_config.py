@@ -7,11 +7,10 @@ with 50,000-image training set and a 10,000-image test set """
 # Parameters setup
 LEARNING_RATE = 0.001
 BATCH_SIZE = 256
-NUM_EPOCHS = 40
+NUM_EPOCHS = 50
 TRAIN_LOG_PATH = "CIFAR10_train_log.txt"
 TEST_LOG_PATH = "CIFAR10_test_log.txt"
 MODEL_PATH = "CIFAR10_model.pth"
-USE_TENSORBOARD = False
 
 # Device configuration
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
