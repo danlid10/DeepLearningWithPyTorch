@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary
-import MNIST_config
+import MNIST_NN_config
 
 # Load MNIST dataset
 test_transforms = transforms.Compose([
@@ -16,19 +16,19 @@ test_transforms = transforms.Compose([
 test_data = datasets.MNIST(root="data", train=False, download=True, transform=test_transforms)
 
 # Data loader setup
-test_loader = DataLoader(dataset=test_data, batch_size=MNIST_config.BATCH_SIZE)
+test_loader = DataLoader(dataset=test_data, batch_size=MNIST_NN_config.BATCH_SIZE)
 
 writer = SummaryWriter()
 
 # Loading the model
-model = MNIST_config.NeuralNet()
-model.load_state_dict(torch.load(MNIST_config.MODEL_PATH, map_location=MNIST_config.DEVICE)) 
+model = MNIST_NN_config.NeuralNet()
+model.load_state_dict(torch.load(MNIST_NN_config.MODEL_PATH, map_location=MNIST_NN_config.DEVICE)) 
 model.eval()
-print(f"Model loaded to {MNIST_config.DEVICE}")
+print(f"Model loaded to {MNIST_NN_config.DEVICE}")
 
 start_time = datetime.now()
 os.makedirs('logs', exist_ok=True)
-log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{MNIST_config.TEST_LOG_PATH}')
+log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{MNIST_NN_config.TEST_LOG_PATH}')
 print("Model summary:")
 modelsum = summary(model, (1, 28 * 28))
 
@@ -46,8 +46,8 @@ with torch.no_grad():
 
     for features, labels in test_loader:
 
-        features = features.view(features.size(0), -1).to(MNIST_config.DEVICE)
-        labels = labels.to(MNIST_config.DEVICE)
+        features = features.view(features.size(0), -1).to(MNIST_NN_config.DEVICE)
+        labels = labels.to(MNIST_NN_config.DEVICE)
         
         outputs = model(features)
 
@@ -70,7 +70,7 @@ with torch.no_grad():
     
     with open(log_path, 'w', encoding='utf-8') as f:
 
-        f.write(f"Testing log from {start_time}, Device: {MNIST_config.DEVICE}\n")
+        f.write(f"Testing log from {start_time}, Device: {MNIST_NN_config.DEVICE}\n")
         f.write(f"Model summary:\n {str(modelsum)}\n")
 
         for i in range(num_classes):

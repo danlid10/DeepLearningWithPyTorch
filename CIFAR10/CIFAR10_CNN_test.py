@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary
-import CIFAR10_config
+import CIFAR10_CNN_config
   
 # Load MNIST test dataset
 test_transforms = transforms.Compose([
@@ -15,19 +15,19 @@ test_transforms = transforms.Compose([
 test_data = datasets.CIFAR10(root="data", train=False, download=True, transform=test_transforms)
 
 # Data loader setup
-test_loader = DataLoader(dataset=test_data, batch_size=CIFAR10_config.BATCH_SIZE)
+test_loader = DataLoader(dataset=test_data, batch_size=CIFAR10_CNN_config.BATCH_SIZE)
 
 writer = SummaryWriter()
 
 # Loading the model
-model = CIFAR10_config.ConvNeuralNet()
-model.load_state_dict(torch.load(CIFAR10_config.MODEL_PATH, map_location=CIFAR10_config.DEVICE)) 
+model = CIFAR10_CNN_config.ConvNeuralNet()
+model.load_state_dict(torch.load(CIFAR10_CNN_config.MODEL_PATH, map_location=CIFAR10_CNN_config.DEVICE)) 
 model.eval()
-print(f"Model loaded to {CIFAR10_config.DEVICE}")
+print(f"Model loaded to {CIFAR10_CNN_config.DEVICE}")
 
 start_time = datetime.now()
 os.makedirs('logs', exist_ok=True)
-log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{CIFAR10_config.TEST_LOG_PATH}')
+log_path = os.path.join('logs', f'{start_time.strftime("%Y%m%d-%H%M%S")}_{CIFAR10_CNN_config.TEST_LOG_PATH}')
 print("Model summary:")
 modelsum = summary(model, (3, 32, 32))
 
@@ -45,8 +45,8 @@ with torch.no_grad():
 
     for features, labels in test_loader:
 
-        features = features.to(CIFAR10_config.DEVICE)
-        labels = labels.to(CIFAR10_config.DEVICE)
+        features = features.to(CIFAR10_CNN_config.DEVICE)
+        labels = labels.to(CIFAR10_CNN_config.DEVICE)
 
         outputs = model(features)
 
@@ -67,7 +67,7 @@ with torch.no_grad():
     test_label = torch.cat(class_label)
 
     with open(log_path, 'w', encoding='utf-8') as f:
-        f.write(f"Testing log from {start_time}, Device: {CIFAR10_config.DEVICE}\n")
+        f.write(f"Testing log from {start_time}, Device: {CIFAR10_CNN_config.DEVICE}\n")
         f.write(f"Model summary:\n {str(modelsum)}\n")
         for i in range(num_classes):
             class_acc = 100.0 * n_class_correct[i] / n_class_samples[i]
